@@ -50,13 +50,14 @@ import skimage.io as io
 
 import matplotlib.patches as mpatch
 
+
 def adjust_rotation(image):
     # grab the (x, y) coordinates of all pixel values that
     # are greater than zero, then use these coordinates to
     # compute a rotated bounding box that contains all
     # coordinates
     coords = np.column_stack(np.where(image > 0))
-    
+
     angle = cv2.minAreaRect(coords)[-1]
     # the `cv2.minAreaRect` function returns values in the
     # range [-90, 0); as the rectangle rotates clockwise the
@@ -73,7 +74,7 @@ def adjust_rotation(image):
     (h, w) = image.shape[:2]
     center = (w // 2, h // 2)
     M = cv2.getRotationMatrix2D(center, angle, 1.0)
-    rotated = cv2.warpAffine(image, M, (w, h),flags=cv2.INTER_AREA     , borderMode=cv2.BORDER_REPLICATE)
+    rotated = cv2.warpAffine(image, M, (w, h), flags=cv2.INTER_AREA, borderMode=cv2.BORDER_REPLICATE)
 
     return rotated
 
@@ -119,22 +120,25 @@ def deskew(binary):
     gray = rotate(gray, rotation_angle, resize=True, mode='constant', cval=255)
     return rotated, gray
 
-def show_images(images,titles=None):
+
+def show_images(images, titles=None):
     n_ims = len(images)
-    if titles is None: titles = ['(%d)' % i for i in range(1,n_ims + 1)]
+    if titles is None: titles = ['(%d)' % i for i in range(1, n_ims + 1)]
     fig = plt.figure()
     n = 1
-    for image,title in zip(images,titles):
-        a = fig.add_subplot(1,n_ims,n)
-        if image.ndim == 2: 
+    for image, title in zip(images, titles):
+        a = fig.add_subplot(1, n_ims, n)
+        if image.ndim == 2:
             plt.gray()
         plt.imshow(image)
         a.set_title(title)
         n += 1
     fig.set_size_inches(np.array(fig.get_size_inches()) * n_ims)
-    plt.show() 
+    plt.show()
 
     # binarize the image withe the best between the regular threshold mean and the otsu threshold value
+
+
 def binarizeImage(image):
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     gray = cv2.bitwise_not(gray)
@@ -142,29 +146,32 @@ def binarizeImage(image):
     return gray
 
     # remove elements from array that are close to each other with the (cozy value as the var of diiference)
-def closer(arr,cozy):
+
+
+def closer(arr, cozy):
     result = []
     result.append(arr[0])
-    for i in range(1,len(arr)-1):
-        if arr[i]-result[-1]>cozy:
+    for i in range(1, len(arr) - 1):
+        if arr[i] - result[-1] > cozy:
             result.append(arr[i])
-    return result  
+    return result
+
 
 #  segment lines and plot the line histogram
-def lineSegmenter(img,plot):
-    rows=np.sum(img,1)
+def lineSegmenter(img, plot):
+    rows = np.sum(img, 1)
     y_pos = np.arange(len(rows))
-    peaks=np.logical_and(rows>10, rows<1000)
-    peaks=y_pos[peaks]
-    peaks=closer(peaks,4)
+    peaks = np.logical_and(rows > 10, rows < 1000)
+    peaks = y_pos[peaks]
+    peaks = closer(peaks, 4)
 
-    lines=[]
+    lines = []
     for i in range(len(peaks)):
-        if(i==len(peaks)-1):
+        if (i == len(peaks) - 1):
             continue
-        lines.append(img[peaks[i]:peaks[i+1],:])
+        lines.append(img[peaks[i]:peaks[i + 1], :])
 
-    if(plot==True):
+    if (plot == True):
         plt.barh(y_pos, rows, align='center', alpha=0.5)
         plt.xlabel('Sum of pixels')
         plt.title('Row Contribution')
@@ -172,25 +179,27 @@ def lineSegmenter(img,plot):
 
     return lines
 
+
 def wordSegmenter(line):
-    words=[]
+    words = []
     for i in line:
-        peaks=[]
+        peaks = []
         print(i.shape)
         for x in range(i.shape[1]):
-            value=0
+            value = 0
             for y in range(i.shape[0]):
-                value+=i[y,x]
-            if(value>3):
+                value += i[y, x]
+            if (value > 3):
                 peaks.append(x)
-        peaks=closer(peaks,3)
+        peaks = closer(peaks, 3)
 
         for z in range(len(peaks)):
-            if(z==len(peaks)-1):
+            if (z == len(peaks) - 1):
                 continue
-            words.append(i[:,peaks[z]:peaks[z+1]]) 
-    
+            words.append(i[:, peaks[z]:peaks[z + 1]])
+
     return words
+
 
 # CCA APPROACH TESTED
 def CCA(binary):
@@ -233,18 +242,19 @@ def displayComponents(binary, components):
     fig, ax = plt.subplots(figsize=(10, 6))
     ax.imshow(binary)
     for component in components:
-        #if component.area > 100:
-            # take regions with large enough areas
-            # draw rectangle around segmented coins
-            # print("orientation of component:",component.orientation)
+        # if component.area > 100:
+        # take regions with large enough areas
+        # draw rectangle around segmented coins
+        # print("orientation of component:",component.orientation)
         minR, minC, maxR, maxC = component.bbox
         rect = mpatch.Rectangle((minC, minR), maxC - minC, maxR - minR, fill=False, edgecolor='red', linewidth=2)
-            # show_images([component.image], ["el sorraaa"])
+        # show_images([component.image], ["el sorraaa"])
         ax.add_patch(rect)
     ax.set_axis_off()
     plt.tight_layout()
     plt.show()
-    
+
+
 def segmentBoxesInImage(boxes, image_to_segment):
     notes_with_lines = []
     showcase_image = image_to_segment.copy()
@@ -262,6 +272,7 @@ def segmentBoxesInImage(boxes, image_to_segment):
 def showHist2(histogramImg):
     plt.figure()
     bar(histogramImg[1] * 255, histogramImg[0], width=0.8, align='center')
+
 
 def showHist(img):
     # An "interface" to matplotlib.axes.Axes.hist() method
@@ -291,7 +302,6 @@ def ShowHorizontalProjections(bin):
     #         bin[i, :] = 0
 
     return result
-
 
 
 def deskew(gray):
@@ -353,6 +363,7 @@ def deskew(gray):
     gray = rotate(gray, rotation_angle, resize=True, mode='constant', cval=255)
     return rotated, gray
 
+
 def segmentImages(rgbimage):
     gray = cv2.cvtColor(rgbimage, cv2.COLOR_BGR2GRAY)
     # Find the edges in the image using canny detector
@@ -365,32 +376,35 @@ def segmentImages(rgbimage):
     # fig, axes = plt.subplots(1, 3, figsize=(15, 6))
     # ax = axes.ravel()
 
-    min_dist=int(0.15*edges.shape[0])
-    indices=np.zeros((3,2))
+    min_dist = int(0.15 * edges.shape[0])
+    indices = np.zeros((3, 2))
     # ax[0].imshow(edges, cmap=cm.gray)
     origin = np.array((0, edges.shape[1]))
-    #print("origin:",origin)
-    i=0
-    for _, angle, dist in zip(*hough_line_peaks(h, theta, d,min_distance=min_dist)):
+    # print("origin:",origin)
+    i = 0
+    for _, angle, dist in zip(*hough_line_peaks(h, theta, d, min_distance=min_dist)):
         y0, y1 = (dist - origin * np.cos(angle)) / np.sin(angle)
-        indices[i][0]=int(y0)
-        indices[i][1]=int(y1)
-        i+=1
-        #print(y0,y1)
-        #ax[0].plot(origin, (y0, y1), '-r')
-        
-    print("Lines indices: ", indices)
-    #ax[0].set_xlim(origin)
-    #ax[0].set_ylim((edges.shape[0], 0))
-    #ax[0].set_axis_off()
-    #ax[0].set_title('Detected lines')
+        indices[i][0] = int(y0)
+        indices[i][1] = int(y1)
+        i += 1
+        # print(y0,y1)
+        # ax[0].plot(origin, (y0, y1), '-r')
 
-    #plt.tight_layout()
-    #plt.show()
-    indices=np.sort(indices,axis=0)
+    print("Lines indices: ", indices)
+    # ax[0].set_xlim(origin)
+    # ax[0].set_ylim((edges.shape[0], 0))
+    # ax[0].set_axis_off()
+    # ax[0].set_title('Detected lines')
+
+    # plt.tight_layout()
+    # plt.show()
+    indices = np.sort(indices, axis=0)
     # print(indices)
     # Show result
-    img_scanned = edges[int(indices[0][0]):int(indices[1][0]),:]
-    img_handwritten=edges[int(indices[1][0]):int(indices[2][1]),:]
+    img_scanned = rgbimage[int(indices[0][0]):int(indices[1][0]), :]
+    img_handwritten = rgbimage[int(indices[1][0]):int(indices[2][1]), :]
+
+    img_scanned = np.negative(img_scanned)
+    img_handwritten = np.negative(img_handwritten)
 
     return img_scanned, img_handwritten
