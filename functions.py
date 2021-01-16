@@ -48,6 +48,7 @@ from skimage.filters import gaussian, threshold_otsu
 from skimage.feature import canny
 from skimage.transform import probabilistic_hough_line, rotate
 import skimage.io as io
+from skimage import segmentation
 
 import matplotlib.patches as mpatch
 
@@ -230,6 +231,9 @@ def CCA(binary, rowcol):
             keys.append(str(index))
             index += 1
     # print(thisdict.keys())
+            
+    thisdict = {component.bbox[0] if rowcol else component.bbox[1]:[binary[component.bbox[0]:component.bbox[2]+2,component.bbox[1]:component.bbox[3] + 2],component.bbox,component.area/component.bbox_area] for component in components}
+    print(thisdict.keys())
     for key in sorted(thisdict.keys()):
         sorted_segmented_images.append(thisdict[key][0])
         boxes.append(thisdict[key][1])
