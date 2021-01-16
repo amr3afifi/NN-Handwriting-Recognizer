@@ -49,13 +49,18 @@ for i in range(len(scanned_Lines)):
 sum_scanned /= len(scanned_Lines)
 avg_length_scanned = np.average(avgs_length_scanned)
 avg_height_scanned = np.average(avgs_height_scanned)
-average_gaps_line = []
+average_word_gaps_line = []
 print("number of handwritten lines", len(handwritten_Lines))
 max_col = 0
-min_col = 0
+min_row = 0
+line_gaps = []
 for i in range(len(handwritten_Lines)):
     handwritten_words_components, handwritten_arrayOfWords, handwritten_words_boxes = wordsComponents(
         handwritten_Lines[i])
+    # f6
+    if i != 0:
+        line_gaps.append(handwritten_components[i].bbox[2] - min_row)
+    min_row = handwritten_components[i].bbox[0]
     # f5
     words_gaps = []
     words_blobs_areas = []
@@ -68,7 +73,7 @@ for i in range(len(handwritten_Lines)):
             # f4
             words_blobs_areas.append(blobArea(
                 handwritten_arrayOfWords[j] ^ segmentation.flood_fill(handwritten_arrayOfWords[j], (0, 0), 255)))
-        average_gaps_line.append(np.average(words_gaps))
+        average_word_gaps_line.append(np.average(words_gaps))
         avgs_blobs_handwritten.append(np.average(words_blobs_areas))
     # f4 calculations
     # words_blobs_areas = [
@@ -83,7 +88,7 @@ for i in range(len(handwritten_Lines)):
     avgs_length_handwritten.append((npsum[3] - npsum[1]) / length_handwritten_words)
     # f3
     avgs_height_handwritten.append((npsum[2] - npsum[0]) / length_handwritten_words)
-print("words gaps:", average_gaps_line)
+# print("words gaps:", average_word_gaps_line)
 sum_handwritten /= len(handwritten_Lines)
 avg_length_handwritten = np.average(avgs_length_handwritten)
 avg_height_handwritten = np.average(avgs_height_handwritten)
@@ -93,8 +98,10 @@ f1 = sum_scanned / sum_handwritten
 f2 = avg_length_scanned / avg_length_handwritten
 f3 = avg_height_scanned / avg_height_handwritten
 f4 = np.average(avgs_blobs_handwritten)
-f5 = np.average(average_gaps_line)
+f5 = np.average(average_word_gaps_line)
+f6 = np.average(line_gaps)
 print("f5", f5)
 print("f4", f4)
+print("f6", f6)
 
 print(f3)
