@@ -1,7 +1,7 @@
 from functions import *
 
 # Read
-img = cv2.imread('1.png', cv2.IMREAD_COLOR)
+img = cv2.imread('2.png', cv2.IMREAD_COLOR)
 
 # Copying the rgb image
 rgbimage = img.copy()
@@ -21,3 +21,8 @@ handwritten_binary = handwritten_gray > threshold_otsu(handwritten_gray)
 scanned_components, scanned_Lines = linesComponents(scanned_binary, img.shape[1])
 handwritten_components, handwritten_Lines = linesComponents(handwritten_binary, img.shape[1])
 
+
+# Retrieving Words Images and Components from each line
+words_components, arrayOfWords = wordsComponents(scanned_Lines[6])
+for word in arrayOfWords:
+    show_images([word])

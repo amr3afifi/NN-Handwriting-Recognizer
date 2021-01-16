@@ -203,31 +203,38 @@ def wordSegmenter(line):
 
 
 # CCA APPROACH TESTED
-def CCA(binary):
+def CCA(binary, rowcol):
     # Perform CCA on the mask
     labeled_image = skimage.measure.label(binary, connectivity=2, return_num=True, background=0)
     components = skimage.measure.regionprops(labeled_image[0])
     thisdict = {}
-    sorted_notes_images = []
+    sorted_segmented_images = []
     index = 0
     keys = []
     boxes = []
     areas_over_bbox = []
     for component in components:
-        if component.area > 0:
-            minR, minC, maxR, maxC = component.bbox
+        minR, minC, maxR, maxC = component.bbox
+        if rowcol:
             thisdict[minR] = []
             thisdict[minR].append(binary[minR:maxR + 2, minC:maxC + 2])
             thisdict[minR].append(component.bbox)
             thisdict[minR].append(component.area / component.bbox_area)
             keys.append(str(index))
             index += 1
+        else:
+            thisdict[minC] = []
+            thisdict[minC].append(binary[minR:maxR + 2, minC:maxC + 2])
+            thisdict[minC].append(component.bbox)
+            thisdict[minC].append(component.area / component.bbox_area)
+            keys.append(str(index))
+            index += 1
     print(thisdict.keys())
     for key in sorted(thisdict.keys()):
-        sorted_notes_images.append(thisdict[key][0])
+        sorted_segmented_images.append(thisdict[key][0])
         boxes.append(thisdict[key][1])
         areas_over_bbox.append(thisdict[key][2])
-    return components, sorted_notes_images, boxes, areas_over_bbox
+    return components, sorted_segmented_images, boxes, areas_over_bbox
 
 
 def componentsAreas(components):
@@ -256,20 +263,28 @@ def displayComponents(binary, components):
     plt.show()
 
 
-def segmentBoxesInImage(boxes, image_to_segment):
+# LINEWORD = TRUE MEANS SEGMENTING LINE, LINEWORD = FASLE MEANS SEGMENTING WORDS
+def segmentBoxesInImage(boxes, image_to_segment, lineword):
     notes_with_lines = []
     showcase_image = image_to_segment.copy()
     boxat = np.array(boxes)
     average_height = np.average(boxat[:, 2] - boxat[:, 0])
-    print("average height =", average_height)
-    for box in boxes:
-        [Ymin, Xmin, Ymax, Xmax] = box
-        if Ymax - Ymin >= average_height:
-            # print(box)
-            rr, cc = rectangle_perimeter(start=(Ymin, Xmin), end=(Ymax, Xmax), shape=image_to_segment.shape)
-            # showcase_image[np.min(rr):np.max(rr), np.min(cc):np.max(cc)] = 255  # set color white
-            notes_with_lines.append(image_to_segment[np.min(rr):np.max(rr), np.min(cc):np.max(cc)])
+    if lineword:
+        for box in boxes:
+            [Ymin, Xmin, Ymax, Xmax] = box
 
+            if Ymax - Ymin >= average_height:
+                # print(box)
+                rr, cc = rectangle_perimeter(start=(Ymin, Xmin), end=(Ymax, Xmax), shape=image_to_segment.shape)
+                # showcase_image[np.min(rr):np.max(rr), np.min(cc):np.max(cc)] = 255  # set color white
+                notes_with_lines.append(image_to_segment[np.min(rr):np.max(rr), np.min(cc):np.max(cc)])
+    else:
+        for box in boxes:
+            [Ymin, Xmin, Ymax, Xmax] = box
+            if (Ymax - Ymin) * (Xmax - Xmin) >= 450:
+                rr, cc = rectangle_perimeter(start=(Ymin, Xmin), end=(Ymax, Xmax), shape=image_to_segment.shape)
+                # showcase_image[np.min(rr):np.max(rr), np.min(cc):np.max(cc)] = 255  # set color white
+                notes_with_lines.append(image_to_segment[np.min(rr):np.max(rr), np.min(cc):np.max(cc)])
     notes_with_lines = np.array(notes_with_lines)
     return notes_with_lines
 
@@ -457,10 +472,20 @@ def linesComponents(binary_image, originalImageWidth):
     dilated = binary_dilation(binary_image, np.ones((3, originalImageWidth // 16)))
     # show_images([dilated])
 
-    lines_components, lines_sorted_images, lines_boxes, lines_areas_over_bbox = CCA(dilated)
+    lines_components, lines_sorted_images, lines_boxes, lines_areas_over_bbox = CCA(dilated, True)
     # displayComponents(binary_image, lines_components)
 
-    arrayOfLines = segmentBoxesInImage(lines_boxes, binary_image)
+    arrayOfLines = segmentBoxesInImage(lines_boxes, binary_image, True)
     # for imageLine in arrayOfLines:
     #    show_images([imageLine])
     return lines_components, arrayOfLines
+
+
+def wordsComponents(binary_image):
+    dilated = binary_dilation(binary_image, np.ones((10, 10)))
+    show_images([dilated])
+    words_components, words_sorted_images, words_boxes, words_areas_over_bbox = CCA(dilated, False)
+    displayComponents(binary_image, words_components)
+    arrayOfWords = segmentBoxesInImage(words_boxes, binary_image, False)
+
+    return words_components, arrayOfWords
