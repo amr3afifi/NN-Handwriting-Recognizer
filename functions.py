@@ -231,8 +231,10 @@ def CCA(binary, rowcol):
             keys.append(str(index))
             index += 1
     # print(thisdict.keys())
-            
-    thisdict = {component.bbox[0] if rowcol else component.bbox[1]:[binary[component.bbox[0]:component.bbox[2]+2,component.bbox[1]:component.bbox[3] + 2],component.bbox,component.area/component.bbox_area] for component in components}
+
+    thisdict = {component.bbox[0] if rowcol else component.bbox[1]: [
+        binary[component.bbox[0]:component.bbox[2] + 2, component.bbox[1]:component.bbox[3] + 2], component.bbox,
+        component.area / component.bbox_area] for component in components}
     print(thisdict.keys())
     for key in sorted(thisdict.keys()):
         sorted_segmented_images.append(thisdict[key][0])
@@ -270,14 +272,14 @@ def displayComponents(binary, components):
 # LINEWORD = TRUE MEANS SEGMENTING LINE, LINEWORD = FASLE MEANS SEGMENTING WORDS
 def segmentBoxesInImage(boxes, image_to_segment, lineword):
     notes_with_lines = []
-    showcase_image = image_to_segment.copy()
+    # showcase_image = image_to_segment.copy()
     boxat = np.array(boxes)
     average_height = np.average(boxat[:, 2] - boxat[:, 0])
     if lineword:
         for box in boxes:
             [Ymin, Xmin, Ymax, Xmax] = box
-
-            if Ymax - Ymin >= average_height:
+            # For small segmentation errors
+            if Ymax - Ymin >= average_height * 0.7:
                 # print(box)
                 rr, cc = rectangle_perimeter(start=(Ymin, Xmin), end=(Ymax, Xmax), shape=image_to_segment.shape)
                 # showcase_image[np.min(rr):np.max(rr), np.min(cc):np.max(cc)] = 255  # set color white
@@ -285,6 +287,7 @@ def segmentBoxesInImage(boxes, image_to_segment, lineword):
     else:
         for box in boxes:
             [Ymin, Xmin, Ymax, Xmax] = box
+            # For comma and dots
             if (Ymax - Ymin) * (Xmax - Xmin) >= 450:
                 rr, cc = rectangle_perimeter(start=(Ymin, Xmin), end=(Ymax, Xmax), shape=image_to_segment.shape)
                 # showcase_image[np.min(rr):np.max(rr), np.min(cc):np.max(cc)] = 255  # set color white
@@ -488,7 +491,7 @@ def get_references(img):
 
 
 def linesComponents(binary_image, originalImageWidth):
-    dilated = binary_dilation(binary_image, np.ones((3, originalImageWidth // 16)))
+    dilated = binary_dilation(binary_image, np.ones((3, originalImageWidth // 2)))
     # show_images([dilated])
 
     lines_components, lines_sorted_images, lines_boxes, lines_areas_over_bbox = CCA(dilated, True)
@@ -496,7 +499,7 @@ def linesComponents(binary_image, originalImageWidth):
 
     arrayOfLines = segmentBoxesInImage(lines_boxes, binary_image, True)
     # for imageLine in arrayOfLines:
-    #    show_images([imageLine])
+    #     show_images([imageLine])
     return lines_components, arrayOfLines
 
 
@@ -508,3 +511,16 @@ def wordsComponents(binary_image):
     arrayOfWords = segmentBoxesInImage(words_boxes, binary_image, False)
 
     return words_components, arrayOfWords, words_boxes
+
+
+def caculateBlackArea(img):
+    area = img.shape[0] * img.shape[1]
+    b_area = len(img == 0)
+    # print("Black area= ", b_area)
+    if area == 0:
+        area = 1
+    return b_area / area
+
+
+def blobArea(blobimg):
+    return len(blobimg == 0)
