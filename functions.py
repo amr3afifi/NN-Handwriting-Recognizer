@@ -229,7 +229,7 @@ def CCA(binary, rowcol):
             thisdict[minC].append(component.area / component.bbox_area)
             keys.append(str(index))
             index += 1
-    print(thisdict.keys())
+    # print(thisdict.keys())
     for key in sorted(thisdict.keys()):
         sorted_segmented_images.append(thisdict[key][0])
         boxes.append(thisdict[key][1])
@@ -395,10 +395,13 @@ def segmentImages(rgbimage):
     min_dist = int(0.15 * edges.shape[0])
     indices = np.zeros((3, 2))
     # ax[0].imshow(edges, cmap=cm.gray)
+    show_images([rgbimage])
     origin = np.array((0, edges.shape[1]))
     # print("origin:",origin)
     i = 0
     for _, angle, dist in zip(*hough_line_peaks(h, theta, d, min_distance=min_dist)):
+        print(dist)
+
         y0, y1 = (dist - origin * np.cos(angle)) / np.sin(angle)
         indices[i][0] = int(y0)
         indices[i][1] = int(y1)
@@ -483,9 +486,9 @@ def linesComponents(binary_image, originalImageWidth):
 
 def wordsComponents(binary_image):
     dilated = binary_dilation(binary_image, np.ones((10, 10)))
-    show_images([dilated])
+    # show_images([dilated])
     words_components, words_sorted_images, words_boxes, words_areas_over_bbox = CCA(dilated, False)
-    displayComponents(binary_image, words_components)
+    # displayComponents(binary_image, words_components)
     arrayOfWords = segmentBoxesInImage(words_boxes, binary_image, False)
 
-    return words_components, arrayOfWords
+    return words_components, arrayOfWords,words_boxes
