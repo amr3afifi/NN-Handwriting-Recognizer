@@ -384,28 +384,40 @@ def segmentImages(rgbimage):
     gray = cv2.cvtColor(rgbimage, cv2.COLOR_BGR2GRAY)
     # Find the edges in the image using canny detector
     edges = cv2.Canny(gray, 50, 200)
+    print(edges)
     # Detect points that form a line
+    tested_angles = np.array([-np.pi / 2, np.pi / 2])
+    tested_angles1 = np.linspace(-np.pi / 2, -0.5, 100, endpoint=False)
+    tested_angles2 = np.linspace(0.5, np.pi / 2, 100, endpoint=False)
+    tested_angles = np.append(tested_angles1, tested_angles2)
     tested_angles = np.linspace(-np.pi / 2, np.pi / 2, 360, endpoint=False)
+
     h, theta, d = hough_line(edges, theta=tested_angles)
 
     # Generating figure 1
     # fig, axes = plt.subplots(1, 3, figsize=(15, 6))
     # ax = axes.ravel()
-
-    min_dist = int(0.15 * edges.shape[0])
+    print(edges.shape)
+    show_images([edges])
+    min_dist = int(0.01 * edges.shape[0])
     indices = np.zeros((3, 2))
     # ax[0].imshow(edges, cmap=cm.gray)
     show_images([rgbimage])
     origin = np.array((0, edges.shape[1]))
     # print("origin:",origin)
     i = 0
+    ys = np.zeros(3)
     for _, angle, dist in zip(*hough_line_peaks(h, theta, d, min_distance=min_dist)):
-        print(dist)
-
+        print(angle, dist)
+        if -1 < angle < 1:
+            continue
         y0, y1 = (dist - origin * np.cos(angle)) / np.sin(angle)
         indices[i][0] = int(y0)
         indices[i][1] = int(y1)
+        print(i)
         i += 1
+        if i == 3:
+            break
         # print(y0,y1)
         # ax[0].plot(origin, (y0, y1), '-r')
 
@@ -421,7 +433,7 @@ def segmentImages(rgbimage):
     # print(indices)
     # Show result
     img_scanned = rgbimage[int(indices[0][0]):int(indices[1][0]), :]
-    img_handwritten = rgbimage[int(indices[1][0]):int(indices[2][1]), :]
+    img_handwritten = rgbimage[int(indices[1][0]):int(indices[2][0]), :]
 
     img_scanned = np.negative(img_scanned)
     img_handwritten = np.negative(img_handwritten)
@@ -491,4 +503,4 @@ def wordsComponents(binary_image):
     # displayComponents(binary_image, words_components)
     arrayOfWords = segmentBoxesInImage(words_boxes, binary_image, False)
 
-    return words_components, arrayOfWords,words_boxes
+    return words_components, arrayOfWords, words_boxes
