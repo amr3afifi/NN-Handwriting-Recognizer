@@ -12,6 +12,7 @@ import math
 import cv2
 import numpy as np
 from skimage.measure import find_contours
+from statistics import mode
 from scipy.signal import find_peaks
 from skimage.filters import median, gaussian, threshold_otsu
 
@@ -258,15 +259,19 @@ def displayComponents(binary, components):
 def segmentBoxesInImage(boxes, image_to_segment):
     notes_with_lines = []
     showcase_image = image_to_segment.copy()
+    boxat = np.array(boxes)
+    average_height = np.average(boxat[:, 2] - boxat[:, 0])
+    print("average height =", average_height)
     for box in boxes:
         [Ymin, Xmin, Ymax, Xmax] = box
-        # print(box)
-        rr, cc = rectangle_perimeter(start=(Ymin, Xmin), end=(Ymax, Xmax), shape=image_to_segment.shape)
-        showcase_image[np.min(rr):np.max(rr), np.min(cc):np.max(cc)] = 255  # set color white
-        notes_with_lines.append(image_to_segment[np.min(rr):np.max(rr), np.min(cc):np.max(cc)])
+        if Ymax - Ymin >= average_height:
+            # print(box)
+            rr, cc = rectangle_perimeter(start=(Ymin, Xmin), end=(Ymax, Xmax), shape=image_to_segment.shape)
+            # showcase_image[np.min(rr):np.max(rr), np.min(cc):np.max(cc)] = 255  # set color white
+            notes_with_lines.append(image_to_segment[np.min(rr):np.max(rr), np.min(cc):np.max(cc)])
 
-    notes_with_lines = np.array(notes_with_lines, dtype=object)
-    return notes_with_lines, showcase_image
+    notes_with_lines = np.array(notes_with_lines)
+    return notes_with_lines
 
 
 def showHist2(histogramImg):
@@ -284,6 +289,7 @@ def showHist(img):
 
 def ShowHorizontalProjections(bin):
     hproj = np.sum(bin, 1)
+    print(hproj.shape)
 
     # Create output image same height as text, 500 px wide
     m = np.max(hproj)
@@ -296,12 +302,7 @@ def ShowHorizontalProjections(bin):
 
     show_images([bin, result], ['binarized', 'horizontal projection'])
 
-    # r, c = result.shape
-    # for i in range(r):
-    #     if np.sum(result[i]) > 255 * 480:
-    #         bin[i, :] = 0
-
-    return result
+    return result, hproj
 
 
 def deskew(gray):
@@ -408,3 +409,58 @@ def segmentImages(rgbimage):
     img_handwritten = np.negative(img_handwritten)
 
     return img_scanned, img_handwritten
+
+
+def get_references(img):
+    # Run length encoding
+    #     img = binary_dilation(img2,np.ones((3,3)))
+    encoded_img = []
+    encoded_img_color = []
+    # loop on the columns of the img
+    for i in range(img.shape[1]):
+        col = img[:, i]
+        encoded_col = []
+        encoded_col_color = []
+
+        current_color = col[0]
+        current_count = 0
+        # loop on the rows
+        for j in range(img.shape[0]):
+            if current_color == col[j]:
+                current_count += 1
+            else:
+                # appending count and color
+                encoded_col.append(current_count)
+                encoded_col_color.append(current_color)
+
+                current_color = col[j]
+                current_count = 1
+        encoded_col.append(current_count)
+        encoded_col_color.append(current_color)
+
+        encoded_img.extend(encoded_col)
+        encoded_img_color.extend(encoded_col_color)
+
+    encoded_img = np.array(encoded_img)
+    encoded_img_color = np.array(encoded_img_color)
+
+    black_encoded = encoded_img[encoded_img_color == 0]
+    white_encoded = encoded_img[encoded_img_color == 1]
+
+    space = mode(black_encoded)
+    thickness = mode(white_encoded)
+
+    return space, thickness
+
+
+def linesComponents(binary_image, originalImageWidth):
+    dilated = binary_dilation(binary_image, np.ones((3, originalImageWidth // 16)))
+    # show_images([dilated])
+
+    lines_components, lines_sorted_images, lines_boxes, lines_areas_over_bbox = CCA(dilated)
+    # displayComponents(binary_image, lines_components)
+
+    arrayOfLines = segmentBoxesInImage(lines_boxes, binary_image)
+    # for imageLine in arrayOfLines:
+    #    show_images([imageLine])
+    return lines_components, arrayOfLines
