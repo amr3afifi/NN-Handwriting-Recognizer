@@ -1,3 +1,5 @@
+import glob
+
 import numpy as np
 import argparse
 import cv2
@@ -48,6 +50,7 @@ from skimage.filters import gaussian, threshold_otsu
 from skimage.feature import canny
 from skimage.transform import probabilistic_hough_line, rotate
 import skimage.io as io
+import os
 from skimage import segmentation
 
 import matplotlib.patches as mpatch
@@ -214,22 +217,22 @@ def CCA(binary, rowcol):
     keys = []
     boxes = []
     areas_over_bbox = []
-    for component in components:
-        minR, minC, maxR, maxC = component.bbox
-        if rowcol:
-            thisdict[minR] = []
-            thisdict[minR].append(binary[minR:maxR + 2, minC:maxC + 2])
-            thisdict[minR].append(component.bbox)
-            thisdict[minR].append(component.area / component.bbox_area)
-            keys.append(str(index))
-            index += 1
-        else:
-            thisdict[minC] = []
-            thisdict[minC].append(binary[minR:maxR + 2, minC:maxC + 2])
-            thisdict[minC].append(component.bbox)
-            thisdict[minC].append(component.area / component.bbox_area)
-            keys.append(str(index))
-            index += 1
+    # for component in components:
+    #     minR, minC, maxR, maxC = component.bbox
+    #     if rowcol:
+    #         thisdict[minR] = []
+    #         thisdict[minR].append(binary[minR:maxR + 2, minC:maxC + 2])
+    #         thisdict[minR].append(component.bbox)
+    #         thisdict[minR].append(component.area / component.bbox_area)
+    #         keys.append(str(index))
+    #         index += 1
+    #     else:
+    #         thisdict[minC] = []
+    #         thisdict[minC].append(binary[minR:maxR + 2, minC:maxC + 2])
+    #         thisdict[minC].append(component.bbox)
+    #         thisdict[minC].append(component.area / component.bbox_area)
+    #         keys.append(str(index))
+    #         index += 1
     # print(thisdict.keys())
 
     thisdict = {component.bbox[0] if rowcol else component.bbox[1]: [
@@ -322,7 +325,7 @@ def ShowHorizontalProjections(bin):
     for row in range(bin.shape[0]):
         cv2.line(result, (0, row), (int(hproj[row] * w / m), row), (255, 255, 255), 1)
 
-    show_images([bin, result], ['binarized', 'horizontal projection'])
+    # show_images([bin, result], ['binarized', 'horizontal projection'])
 
     return result, hproj
 
@@ -344,7 +347,7 @@ def deskew(gray):
 
     # print(thresh)
     normalize = image > thresh
-    show_images([normalize], ["binary"])
+    # show_images([normalize], ["binary"])
     # gaussian blur
     blur = gaussian(normalize, 3)
 
@@ -389,9 +392,12 @@ def deskew(gray):
 
 def segmentImages(rgbimage):
     gray = cv2.cvtColor(rgbimage, cv2.COLOR_BGR2GRAY)
+    #gray = rgb2gray(rgbimage)
     # Find the edges in the image using canny detector
+    #edges = canny(gray, 50, 200)
+
     edges = cv2.Canny(gray, 50, 200)
-    print(edges)
+    #print(edges)
     # Detect points that form a line
     tested_angles = np.array([-np.pi / 2, np.pi / 2])
     tested_angles1 = np.linspace(-np.pi / 2, -0.5, 100, endpoint=False)
@@ -405,11 +411,11 @@ def segmentImages(rgbimage):
     # fig, axes = plt.subplots(1, 3, figsize=(15, 6))
     # ax = axes.ravel()
     print(edges.shape)
-    show_images([edges])
+    # show_images([edges])
     min_dist = int(0.01 * edges.shape[0])
     indices = np.zeros((3, 2))
     # ax[0].imshow(edges, cmap=cm.gray)
-    show_images([rgbimage])
+    # show_images([rgbimage])
     origin = np.array((0, edges.shape[1]))
     # print("origin:",origin)
     i = 0
@@ -441,6 +447,7 @@ def segmentImages(rgbimage):
     # Show result
     img_scanned = rgbimage[int(indices[0][0]):int(indices[1][0]), :]
     img_handwritten = rgbimage[int(indices[1][0]):int(indices[2][0]), :]
+    # show_images([img_scanned], ["img scanned"])
 
     img_scanned = np.negative(img_scanned)
     img_handwritten = np.negative(img_handwritten)
@@ -491,8 +498,8 @@ def get_references(img):
 
 
 def linesComponents(binary_image, originalImageWidth):
-    dilated = binary_dilation(binary_image, np.ones((3, originalImageWidth // 2)))
-    # show_images([dilated])
+    dilated = binary_dilation(binary_image, np.ones((1, originalImageWidth // 16)))
+    # show_images([dilated], ["Dilated Lines"])
 
     lines_components, lines_sorted_images, lines_boxes, lines_areas_over_bbox = CCA(dilated, True)
     # displayComponents(binary_image, lines_components)
@@ -524,3 +531,45 @@ def caculateBlackArea(img):
 
 def blobArea(blobimg):
     return len(blobimg == 0)
+
+
+def splitFile(directoryFile, directoryImages):
+    # Change file path&Name
+    f = open(directoryFile, 'r')
+    words = [word.strip() for word in f.readlines()]
+    imgs = [cv2.imread(file) for file in glob.glob(directoryImages + "/*.png")]
+    wordSplit = []
+    labels = []
+
+    for i in range(len(words)):
+        wordSplit.append(words[i].split(" "))
+    for j in range(len(words)):
+        labels.append(wordSplit[j])
+
+    x_train = np.asarray(imgs)
+    y_train = np.asarray(labels)
+    return x_train, y_train
+
+
+def readPipeline(directory):
+    images = []
+    imageNames = []
+    imageClass = []
+
+    for folder in os.listdir(directory):
+        insideDir = directory + '/' + folder
+
+        for classNum in os.listdir(insideDir):
+            insideDir2 = insideDir + '/' + classNum
+
+            if not os.path.isfile(insideDir2):
+                for image in os.listdir(insideDir2):
+                    imageDir = insideDir2 + '/' + image
+
+                    if os.path.isfile(imageDir):
+                        img = cv2.imread(imageDir, 0)
+                        images.append(img)
+                        imageNames.append(image)
+                        imageClass.append(classNum)
+
+    return images, imageNames, imageClass
