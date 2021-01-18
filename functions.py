@@ -401,41 +401,39 @@ def segmentImages(rgbimage):
     gray = cv2.cvtColor(rgbimage, cv2.COLOR_BGR2GRAY)
     # gray = rgb2gray(rgbimage)
     show_images([gray])
+
     # Find the edges in the image using canny detector
     # edges = canny(gray, 50, 200)
     # blur = cv2.GaussianBlur(gray, (5, 5), 0)
     edges = cv2.Canny(gray, 150, 220)
     show_images([edges])
     # Detect points that form a line
-    tested_angles = np.array([-np.pi / 2, np.pi / 2])
-    tested_angles1 = np.linspace(-np.pi / 2, -0.5, 100, endpoint=False)
-    tested_angles2 = np.linspace(0.5, np.pi / 2, 100, endpoint=False)
-    tested_angles = np.append(tested_angles1, tested_angles2)
+    # tested_angles = np.array([-np.pi / 2, np.pi / 2])
+    # tested_angles1 = np.linspace(-np.pi / 2, -0.5, 100, endpoint=False)
+    # tested_angles2 = np.linspace(0.5, np.pi / 2, 100, endpoint=False)
+    # tested_angles = np.append(tested_angles1, tested_angles2)
     tested_angles = np.linspace(-np.pi / 2, np.pi / 2, 360, endpoint=False)
 
     h, theta, d = hough_line(edges, theta=tested_angles)
-
     # Generating figure 1
     # fig, axes = plt.subplots(1, 3, figsize=(15, 6))
     # ax = axes.ravel()
     print("el edges ya za3em", edges.shape)
     # show_images([edges])
-    min_dist = int(0.01 * edges.shape[0])
+    min_dist = int(0.01 * edges.shape[0])*0
     indices = np.zeros((3, 2))
     # ax[0].imshow(edges, cmap=cm.gray)
     # show_images([rgbimage])
     origin = np.array((0, edges.shape[1]))
     # print("origin:",origin)
     i = 0
-    ys = np.zeros(3)
-    for _, angle, dist in zip(*hough_line_peaks(h, theta, d, min_distance=min_dist)):
+    for _, angle, dist in zip(*hough_line_peaks(h, theta, d, min_distance=min_dist,threshold=0.3)):
         print(angle, dist)
         if -1 < angle < 1:
             continue
         y0, y1 = (dist - origin * np.cos(angle)) / np.sin(angle)
         indices[i][0] = int(y0)
         indices[i][1] = int(y1)
-        print(i)
         i += 1
         if i == 3:
             break
@@ -525,7 +523,7 @@ def linesComponents(binary_image, originalImageWidth):
 
 def wordsComponents(binary_image):
     dilated = binary_dilation(binary_image, np.ones((10, 15)))
-    # show_images([dilated])
+    show_images([dilated],["dilated words"])
     words_components, words_sorted_images, words_boxes, words_areas_over_bbox = CCA(dilated, False)
     displayComponents(binary_image, words_components)
     arrayOfWords = segmentBoxesInImage(words_boxes, binary_image, False)

@@ -290,6 +290,7 @@ def training_data(shapes):
         for filename in sorted(glob.glob(str4)):
             print("filname", filename)
             img = read_training_image(filename)  ## cv2.imread reads images in RGB format
+            # show_images([img])
             x_train.append(img)
             y_train.append(i)
     return x_train, y_train
@@ -300,14 +301,14 @@ x_train, y_train = training_data(shapes)
 
 x_train = np.asarray(x_train)
 y_train = np.asarray(y_train)
-show_images(x_train)
+# show_images(x_train)
 print("x_train shape:", x_train.shape)
 print("y_train:", y_train)
 number_of_features = 6
 training_features = np.zeros((x_train.shape[0], number_of_features))
 
 for i in range(training_features.shape[0]):
-    # show_images([x_train[i]],["inside loop"])
+    show_images([x_train[i]],["inside loop"])
     print(x_train[i].shape)
     features = extract_features(x_train[i])
     if features is not None:
