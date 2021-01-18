@@ -1,5 +1,5 @@
 from functions import *
-
+from sklearn import svm
 
 def extract_features(image):
     img_scanned, img_handwritten = segmentImages(image)
@@ -19,8 +19,6 @@ def extract_features(image):
     scanned_components, scanned_Lines = linesComponents(scanned_binary, image.shape[1])
     handwritten_components, handwritten_Lines = linesComponents(handwritten_binary, image.shape[1])
 
-    print("number of Scanned lines", len(scanned_Lines))
-
     sum_scanned = 0
     sum_handwritten = 0
     avgs_length_scanned = []
@@ -36,8 +34,8 @@ def extract_features(image):
         scanned_words_components, scanned_arrayOfWords, scanned_words_boxes = wordsComponents(scanned_Lines[i])
         # words_images = segmentBoxesInImage(scanned_words_boxes, scanned_Lines[i], False)
 
-        # words_blobs_areas = [blobArea(words_images[j] ^ segmentation.flood_fill(words_images[j], (0, 0), 255)) for j in \
-        #                     range(words_images.shape[0])]
+        # words_blobs_areas = [blobArea(words_images[j] ^ segmentation.flood_fill(words_images[j], (0, 0), 255)) for
+        # j in \ range(words_images.shape[0])]
         npsum = np.sum(scanned_words_boxes, axis=0)
         length_scanned_words = len(scanned_arrayOfWords)
         avgs_length_scanned.append((npsum[3] - npsum[1]) / length_scanned_words)
@@ -54,6 +52,8 @@ def extract_features(image):
     min_row = 0
     line_gaps = []
     for i in range(len(handwritten_Lines)):
+
+        # show_images([handwritten_Lines[i]],["handwritten line inside feature extraction loop"])
         handwritten_words_components, handwritten_arrayOfWords, handwritten_words_boxes = wordsComponents(
             handwritten_Lines[i])
         # f6
@@ -93,6 +93,12 @@ def extract_features(image):
     avg_height_handwritten = np.average(avgs_height_handwritten)
     avgs_blobs_handwritten = np.array(avgs_blobs_handwritten)
 
+    if sum_handwritten == 0:
+        sum_handwritten = 1
+    if avg_length_handwritten == 0:
+        avg_length_handwritten = 1
+    if avg_height_handwritten == 0:
+        avg_height_handwritten = 1
     f1 = sum_scanned / sum_handwritten
     f2 = avg_length_scanned / avg_length_handwritten
     f3 = avg_height_scanned / avg_height_handwritten
@@ -102,6 +108,7 @@ def extract_features(image):
 
     # Retrieving Words Images and Components from each line
     features = [f1, f2, f3, f4, f5, f6]
+    # features = [f4, f5, f6]
     return features
 
 
@@ -133,11 +140,11 @@ def KNN(test_point, training_features, y_train, k):
     third_author = training_features[y_train == 3]
     fourth_author = training_features[y_train == 4]
     fifth_author = training_features[y_train == 5]
-    sixth_author = training_features[y_train == 6]
-    seventh_author = training_features[y_train == 7]
-    eighth_author = training_features[y_train == 8]
-    nineth_author = training_features[y_train == 9]
-    tenth_author = training_features[y_train == 10]
+    # sixth_author = training_features[y_train == 6]
+    # seventh_author = training_features[y_train == 7]
+    # eighth_author = training_features[y_train == 8]
+    # nineth_author = training_features[y_train == 9]
+    # tenth_author = training_features[y_train == 10]
 
     for i in zero_author:
         c = calculateDistance(i, test_point)
@@ -169,31 +176,31 @@ def KNN(test_point, training_features, y_train, k):
         if c < max(minDist):
             minDist[minDist.index(max(minDist))] = c
             minClass[minDist.index(max(minDist))] = 5
-    for i in sixth_author:
-        c = calculateDistance(i, test_point)
-        if c < max(minDist):
-            minDist[minDist.index(max(minDist))] = c
-            minClass[minDist.index(max(minDist))] = 6
-    for i in seventh_author:
-        c = calculateDistance(i, test_point)
-        if c < max(minDist):
-            minDist[minDist.index(max(minDist))] = c
-            minClass[minDist.index(max(minDist))] = 7
-    for i in eighth_author:
-        c = calculateDistance(i, test_point)
-        if c < max(minDist):
-            minDist[minDist.index(max(minDist))] = c
-            minClass[minDist.index(max(minDist))] = 8
-    for i in nineth_author:
-        c = calculateDistance(i, test_point)
-        if c < max(minDist):
-            minDist[minDist.index(max(minDist))] = c
-            minClass[minDist.index(max(minDist))] = 9
-    for i in tenth_author:
-        c = calculateDistance(i, test_point)
-        if c < max(minDist):
-            minDist[minDist.index(max(minDist))] = c
-            minClass[minDist.index(max(minDist))] = 10
+    # for i in sixth_author:
+    #     c = calculateDistance(i, test_point)
+    #     if c < max(minDist):
+    #         minDist[minDist.index(max(minDist))] = c
+    #         minClass[minDist.index(max(minDist))] = 6
+    # for i in seventh_author:
+    #     c = calculateDistance(i, test_point)
+    #     if c < max(minDist):
+    #         minDist[minDist.index(max(minDist))] = c
+    #         minClass[minDist.index(max(minDist))] = 7
+    # for i in eighth_author:
+    #     c = calculateDistance(i, test_point)
+    #     if c < max(minDist):
+    #         minDist[minDist.index(max(minDist))] = c
+    #         minClass[minDist.index(max(minDist))] = 8
+    # for i in nineth_author:
+    #     c = calculateDistance(i, test_point)
+    #     if c < max(minDist):
+    #         minDist[minDist.index(max(minDist))] = c
+    #         minClass[minDist.index(max(minDist))] = 9
+    # for i in tenth_author:
+    #     c = calculateDistance(i, test_point)
+    #     if c < max(minDist):
+    #         minDist[minDist.index(max(minDist))] = c
+    #         minClass[minDist.index(max(minDist))] = 10
 
     # ------------------------------------------------------------------------------------------------------
 
@@ -203,13 +210,14 @@ def KNN(test_point, training_features, y_train, k):
     three = minClass.count(3)
     four = minClass.count(4)
     fiveth = minClass.count(5)
-    sixth = minClass.count(6)
-    seventh = minClass.count(7)
-    eighth = minClass.count(8)
-    nineth = minClass.count(9)
-    tenth = minClass.count(10)
+    # sixth = minClass.count(6)
+    # seventh = minClass.count(7)
+    # eighth = minClass.count(8)
+    # nineth = minClass.count(9)
+    # tenth = minClass.count(10)
 
-    temp = [zero, one, two, three, four, fiveth, sixth, seventh, eighth, nineth, tenth]
+    # temp = [zero, one, two, three, four, fiveth, sixth, seventh, eighth, nineth, tenth]
+    temp = [zero, one, two, three, four, fiveth]  # , sixth]  # , seventh]# , eighth]
     classification = temp.index(max(temp))
     return classification
 
@@ -253,7 +261,7 @@ def predict(test_images, shapes, true_values, training_features, y_train):
     for i in range(len(test_images)):
         # Read each image in the test directory, preprocess it and extract its features.
         img_original = read_training_image(test_images[i])
-        show_images([img_original], ["Test image"])
+        # show_images([img_original], ["Test image"])
         test_point = extract_features(img_original)
 
         # Print the actual class of each test figure.
@@ -296,7 +304,8 @@ def training_data(shapes):
     return x_train, y_train
 
 
-shapes = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"]
+shapes = ["zero", "one", "two", "three", "four", "five"]  # , "six"]  # , "seven"]#,  "eight"]  # , "nine", "ten"]
+# shapes = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"]
 x_train, y_train = training_data(shapes)
 
 x_train = np.asarray(x_train)
@@ -308,7 +317,7 @@ number_of_features = 6
 training_features = np.zeros((x_train.shape[0], number_of_features))
 
 for i in range(training_features.shape[0]):
-    show_images([x_train[i]],["inside loop"])
+    # show_images([x_train[i]],["inside loop"])
     print(x_train[i].shape)
     features = extract_features(x_train[i])
     if features is not None:
@@ -320,7 +329,9 @@ for i in range(training_features.shape[0]):
 test_images = sorted(glob.glob('larger_test_set/test/*'))
 ntest = len(test_images)
 #
-true_values = [8, 5, 10, 7, 1]
+# true_values = [8, 5, 10, 7, 1]
+# true_values = [5, 7, 0, 1]
+true_values = [0, 0, 5]
 #
 if training_features.any():
     knns = predict(test_images, shapes, true_values, training_features, y_train)
@@ -328,4 +339,3 @@ if training_features.any():
 else:
     print("akhhhhh")
 #
-

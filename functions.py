@@ -298,11 +298,24 @@ def segmentBoxesInImage(boxes, image_to_segment, lineword):
         for box in boxes:
             [Ymin, Xmin, Ymax, Xmax] = box
             # For comma and dots
-            if (Ymax - Ymin) * (Xmax - Xmin) >= 450:
+            # if (Ymax - Ymin) * (Xmax - Xmin) >= 450:
+            if (Ymax - Ymin) * (Xmax - Xmin) >= 350:
                 rr, cc = rectangle_perimeter(start=(Ymin, Xmin), end=(Ymax, Xmax), shape=image_to_segment.shape)
                 # showcase_image[np.min(rr):np.max(rr), np.min(cc):np.max(cc)] = 255  # set color white
-                notes_with_lines.append(image_to_segment[np.min(rr):np.max(rr), np.min(cc):np.max(cc)])
-    notes_with_lines = np.array(notes_with_lines)
+                temp_word = image_to_segment[np.min(rr):np.max(rr), np.min(cc):np.max(cc)]
+                print("Temp word shape:", temp_word.shape)
+                notes_with_lines.append(temp_word)
+    print("notes with lines:", len(notes_with_lines))
+    # if len(notes_with_lines) == 2:
+    #     if notes_with_lines[0].shape[0] == notes_with_lines[1].shape[0]:
+    #         zeros = np.zeros((notes_with_lines[0].shape[0] + 1, notes_with_lines[0].shape[1]))
+    #         zeros[:notes_with_lines[0].shape[0], : notes_with_lines[0].shape[1]] = notes_with_lines[0]
+    #         notes_with_lines[0] = zeros
+
+    # show_images(notes_with_lines)
+    notes_with_lines = theCase(notes_with_lines)
+    notes_with_lines = np.array(notes_with_lines, dtype=object)
+    print("notes with lines dot shape", notes_with_lines.shape)
     return notes_with_lines
 
 
@@ -400,13 +413,13 @@ def deskew(gray):
 def segmentImages(rgbimage):
     gray = cv2.cvtColor(rgbimage, cv2.COLOR_BGR2GRAY)
     # gray = rgb2gray(rgbimage)
-    show_images([gray])
+    # show_images([gray])
 
     # Find the edges in the image using canny detector
     # edges = canny(gray, 50, 200)
     # blur = cv2.GaussianBlur(gray, (5, 5), 0)
     edges = cv2.Canny(gray, 150, 220)
-    show_images([edges])
+    # show_images([edges])
     # Detect points that form a line
     # tested_angles = np.array([-np.pi / 2, np.pi / 2])
     # tested_angles1 = np.linspace(-np.pi / 2, -0.5, 100, endpoint=False)
@@ -420,14 +433,14 @@ def segmentImages(rgbimage):
     # ax = axes.ravel()
     print("el edges ya za3em", edges.shape)
     # show_images([edges])
-    min_dist = int(0.01 * edges.shape[0])*0
+    min_dist = int(0.01 * edges.shape[0]) * 0
     indices = np.zeros((3, 2))
     # ax[0].imshow(edges, cmap=cm.gray)
     # show_images([rgbimage])
     origin = np.array((0, edges.shape[1]))
     # print("origin:",origin)
     i = 0
-    for _, angle, dist in zip(*hough_line_peaks(h, theta, d, min_distance=min_dist,threshold=0.3)):
+    for _, angle, dist in zip(*hough_line_peaks(h, theta, d, min_distance=min_dist, threshold=0.3)):
         print(angle, dist)
         if -1 < angle < 1:
             continue
@@ -509,23 +522,37 @@ def get_references(img):
 
 
 def linesComponents(binary_image, originalImageWidth):
-    dilated = binary_dilation(binary_image, np.ones((1, originalImageWidth // 16)))
-    show_images([dilated], ["Dilated Lines"])
+    dilated = binary_dilation(binary_image, np.ones((1, originalImageWidth // 10)))
+    dilated = binary_erosion(dilated, np.ones((3, 1)))
+    # show_images([dilated], ["Dilated Lines"])
 
     lines_components, lines_sorted_images, lines_boxes, lines_areas_over_bbox = CCA(dilated, True)
-    displayComponents(binary_image, lines_components)
+    # displayComponents(binary_image, lines_components)
 
     arrayOfLines = segmentBoxesInImage(lines_boxes, binary_image, True)
-    for imageLine in arrayOfLines:
-        show_images([imageLine])
+    # for imageLine in arrayOfLines:
+    #     show_images([imageLine])
     return lines_components, arrayOfLines
 
 
+def theCase(array):
+    if len(array) > 1:
+        rows = [array[i].shape[0] for i in range(len(array))]
+        if np.average(rows) == array[0].shape[0]:
+            zeros = np.zeros((array[0].shape[0] + 1, array[0].shape[1]))
+            zeros[:array[0].shape[0], : array[0].shape[1]] = array[0]
+            array[0] = zeros
+    return array
+
+
 def wordsComponents(binary_image):
-    dilated = binary_dilation(binary_image, np.ones((10, 15)))
-    show_images([dilated],["dilated words"])
+    dilated = binary_dilation(binary_image, np.ones((15, 10)))
+    # show_images([dilated], ["dilated words"])
     words_components, words_sorted_images, words_boxes, words_areas_over_bbox = CCA(dilated, False)
-    displayComponents(binary_image, words_components)
+    # displayComponents(binary_image, words_components)
+    print("words_boxes shape:", len(words_boxes))
+    if len(words_boxes) == 0:
+        print("Words array less than zero")
     arrayOfWords = segmentBoxesInImage(words_boxes, binary_image, False)
 
     return words_components, arrayOfWords, words_boxes
