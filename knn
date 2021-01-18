@@ -3,7 +3,9 @@ from functions import *
 
 def extract_features(image):
     img_scanned, img_handwritten = segmentImages(image)
-    # show_images([img_scanned, img_handwritten], ["Scanned", "Hand Written"])
+    if img_scanned is None or img_handwritten is None:
+        return None
+    show_images([img_scanned, img_handwritten], ["Scanned", "Hand Written"])
     # Binarizing returned images
     scanned_gray = rgb2gray(img_scanned)
     scanned_binary = scanned_gray > threshold_otsu(scanned_gray)
@@ -125,33 +127,89 @@ def KNN(test_point, training_features, y_train, k):
     minDist = [999999 for i in range(k)]
     minClass = [3 for i in range(k)]
 
-    first_author = training_features[y_train == 0]
-    second_author = training_features[y_train == 1]
-    third_author = training_features[y_train == 2]
+    zero_author = training_features[y_train == 0]
+    first_author = training_features[y_train == 1]
+    second_author = training_features[y_train == 2]
+    third_author = training_features[y_train == 3]
+    fourth_author = training_features[y_train == 4]
+    fifth_author = training_features[y_train == 5]
+    sixth_author = training_features[y_train == 6]
+    seventh_author = training_features[y_train == 7]
+    eighth_author = training_features[y_train == 8]
+    nineth_author = training_features[y_train == 9]
+    tenth_author = training_features[y_train == 10]
 
-    for i in first_author:
+    for i in zero_author:
         c = calculateDistance(i, test_point)
         if c < max(minDist):
             minDist[minDist.index(max(minDist))] = c
             minClass[minDist.index(max(minDist))] = 0
-    for i in second_author:
+    for i in first_author:
         c = calculateDistance(i, test_point)
         if c < max(minDist):
             minDist[minDist.index(max(minDist))] = c
             minClass[minDist.index(max(minDist))] = 1
-    for i in third_author:
+    for i in second_author:
         c = calculateDistance(i, test_point)
         if c < max(minDist):
             minDist[minDist.index(max(minDist))] = c
             minClass[minDist.index(max(minDist))] = 2
+    for i in third_author:
+        c = calculateDistance(i, test_point)
+        if c < max(minDist):
+            minDist[minDist.index(max(minDist))] = c
+            minClass[minDist.index(max(minDist))] = 3
+    for i in fourth_author:
+        c = calculateDistance(i, test_point)
+        if c < max(minDist):
+            minDist[minDist.index(max(minDist))] = c
+            minClass[minDist.index(max(minDist))] = 4
+    for i in fifth_author:
+        c = calculateDistance(i, test_point)
+        if c < max(minDist):
+            minDist[minDist.index(max(minDist))] = c
+            minClass[minDist.index(max(minDist))] = 5
+    for i in sixth_author:
+        c = calculateDistance(i, test_point)
+        if c < max(minDist):
+            minDist[minDist.index(max(minDist))] = c
+            minClass[minDist.index(max(minDist))] = 6
+    for i in seventh_author:
+        c = calculateDistance(i, test_point)
+        if c < max(minDist):
+            minDist[minDist.index(max(minDist))] = c
+            minClass[minDist.index(max(minDist))] = 7
+    for i in eighth_author:
+        c = calculateDistance(i, test_point)
+        if c < max(minDist):
+            minDist[minDist.index(max(minDist))] = c
+            minClass[minDist.index(max(minDist))] = 8
+    for i in nineth_author:
+        c = calculateDistance(i, test_point)
+        if c < max(minDist):
+            minDist[minDist.index(max(minDist))] = c
+            minClass[minDist.index(max(minDist))] = 9
+    for i in tenth_author:
+        c = calculateDistance(i, test_point)
+        if c < max(minDist):
+            minDist[minDist.index(max(minDist))] = c
+            minClass[minDist.index(max(minDist))] = 10
 
     # ------------------------------------------------------------------------------------------------------
 
     zero = minClass.count(0)
     one = minClass.count(1)
     two = minClass.count(2)
+    three = minClass.count(3)
+    four = minClass.count(4)
+    fiveth = minClass.count(5)
+    sixth = minClass.count(6)
+    seventh = minClass.count(7)
+    eighth = minClass.count(8)
+    nineth = minClass.count(9)
+    tenth = minClass.count(10)
 
-    temp = [zero, one, two]
+    temp = [zero, one, two, three, four, fiveth, sixth, seventh, eighth, nineth, tenth]
     classification = temp.index(max(temp))
     return classification
 
@@ -195,7 +253,7 @@ def predict(test_images, shapes, true_values, training_features, y_train):
     for i in range(len(test_images)):
         # Read each image in the test directory, preprocess it and extract its features.
         img_original = read_training_image(test_images[i])
-        show_images([img_original],["Test image"])
+        show_images([img_original], ["Test image"])
         test_point = extract_features(img_original)
 
         # Print the actual class of each test figure.
@@ -224,8 +282,8 @@ def training_data(shapes):
     y_train = []
     for i in range(len(shapes)):
         # print("ana hena ya afifif")
-        str1 = 'testdataset/data/01/'
-        str2 = i + 1
+        str1 = 'larger_test_set/'
+        str2 = i
         str3 = '/*'
         str4 = str1 + str(str2) + str3
         print("str4", str4)
@@ -237,30 +295,36 @@ def training_data(shapes):
     return x_train, y_train
 
 
-shapes = ["class uno", "class duos", "class tres"]
+shapes = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"]
 x_train, y_train = training_data(shapes)
 
 x_train = np.asarray(x_train)
 y_train = np.asarray(y_train)
-# show_images(x_train)
+show_images(x_train)
 print("x_train shape:", x_train.shape)
 print("y_train:", y_train)
 number_of_features = 6
 training_features = np.zeros((x_train.shape[0], number_of_features))
 
-
 for i in range(training_features.shape[0]):
     # show_images([x_train[i]],["inside loop"])
     print(x_train[i].shape)
     features = extract_features(x_train[i])
-    print(features)
-    training_features[i, :] = features
+    if features is not None:
+        print(features)
+        training_features[i, :] = features
+    else:
+        break
 # D:\College\Semester 9\Pattern Recognition and Neural Networks\Project\NN-Handwriting-Recognizer\testdataset\data\01
-test_images = sorted(glob.glob('testdataset/data/01/test/*'))
+test_images = sorted(glob.glob('larger_test_set/test/*'))
 ntest = len(test_images)
 #
-true_values = [0]
+true_values = [8, 5, 10, 7, 1]
 #
-knns = predict(test_images, shapes, true_values, training_features, y_train)
+if training_features.any():
+    knns = predict(test_images, shapes, true_values, training_features, y_train)
+    accuracy_knn = calc_accuracy(knns, true_values, ntest)
+else:
+    print("akhhhhh")
 #
-accuracy_knn = calc_accuracy(knns, true_values, ntest)
+

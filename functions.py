@@ -220,12 +220,13 @@ def CCA(binary, rowcol):
     # for component in components:
     #     minR, minC, maxR, maxC = component.bbox
     #     if rowcol:
-    #         thisdict[minR] = []
-    #         thisdict[minR].append(binary[minR:maxR + 2, minC:maxC + 2])
-    #         thisdict[minR].append(component.bbox)
-    #         thisdict[minR].append(component.area / component.bbox_area)
-    #         keys.append(str(index))
-    #         index += 1
+    #         if horizontalBox(component.bbox):
+    #             thisdict[minR] = []
+    #             thisdict[minR].append(binary[minR:maxR + 2, minC:maxC + 2])
+    #             thisdict[minR].append(component.bbox)
+    #             thisdict[minR].append(component.area / component.bbox_area)
+    #             keys.append(str(index))
+    #             index += 1
     #     else:
     #         thisdict[minC] = []
     #         thisdict[minC].append(binary[minR:maxR + 2, minC:maxC + 2])
@@ -237,8 +238,9 @@ def CCA(binary, rowcol):
 
     thisdict = {component.bbox[0] if rowcol else component.bbox[1]: [
         binary[component.bbox[0]:component.bbox[2] + 2, component.bbox[1]:component.bbox[3] + 2], component.bbox,
-        component.area / component.bbox_area] for component in components}
-    print(thisdict.keys())
+        component.area / component.bbox_area] for component in components if
+        horizontalBox(component.bbox) or not rowcol}
+    # print(thisdict.keys())
     for key in sorted(thisdict.keys()):
         sorted_segmented_images.append(thisdict[key][0])
         boxes.append(thisdict[key][1])
@@ -272,10 +274,15 @@ def displayComponents(binary, components):
     plt.show()
 
 
+# minr, minc, maxr, maxc
+def horizontalBox(box):
+    # print("horizontal yasta:", ((box[3] - box[1]) / (box[2] - box[0])) > 0.9)
+    return ((box[3] - box[1]) / (box[2] - box[0])) > 0.9
+
+
 # LINEWORD = TRUE MEANS SEGMENTING LINE, LINEWORD = FASLE MEANS SEGMENTING WORDS
 def segmentBoxesInImage(boxes, image_to_segment, lineword):
     notes_with_lines = []
-    # showcase_image = image_to_segment.copy()
     boxat = np.array(boxes)
     average_height = np.average(boxat[:, 2] - boxat[:, 0])
     if lineword:
@@ -392,12 +399,13 @@ def deskew(gray):
 
 def segmentImages(rgbimage):
     gray = cv2.cvtColor(rgbimage, cv2.COLOR_BGR2GRAY)
-    #gray = rgb2gray(rgbimage)
+    # gray = rgb2gray(rgbimage)
+    show_images([gray])
     # Find the edges in the image using canny detector
-    #edges = canny(gray, 50, 200)
-
-    edges = cv2.Canny(gray, 50, 200)
-    #print(edges)
+    # edges = canny(gray, 50, 200)
+    # blur = cv2.GaussianBlur(gray, (5, 5), 0)
+    edges = cv2.Canny(gray, 150, 220)
+    show_images([edges])
     # Detect points that form a line
     tested_angles = np.array([-np.pi / 2, np.pi / 2])
     tested_angles1 = np.linspace(-np.pi / 2, -0.5, 100, endpoint=False)
@@ -410,7 +418,7 @@ def segmentImages(rgbimage):
     # Generating figure 1
     # fig, axes = plt.subplots(1, 3, figsize=(15, 6))
     # ax = axes.ravel()
-    print(edges.shape)
+    print("el edges ya za3em", edges.shape)
     # show_images([edges])
     min_dist = int(0.01 * edges.shape[0])
     indices = np.zeros((3, 2))
@@ -445,12 +453,17 @@ def segmentImages(rgbimage):
     indices = np.sort(indices, axis=0)
     # print(indices)
     # Show result
-    img_scanned = rgbimage[int(indices[0][0]):int(indices[1][0]), :]
-    img_handwritten = rgbimage[int(indices[1][0]):int(indices[2][0]), :]
-    # show_images([img_scanned], ["img scanned"])
+    if indices.any():
+        img_scanned = rgbimage[int(indices[0][0]):int(indices[1][0]), :]
+        img_handwritten = rgbimage[int(indices[1][0]):int(indices[2][0]), :]
 
-    img_scanned = np.negative(img_scanned)
-    img_handwritten = np.negative(img_handwritten)
+        img_scanned = np.negative(img_scanned)
+        img_handwritten = np.negative(img_handwritten)
+    else:
+        img_scanned = None
+        img_handwritten = None
+        print("NONESSSSSSSSSSSSSSSSSSSSSSSSSSSSSS")
+    # show_images([img_scanned], ["img scanned"])
 
     return img_scanned, img_handwritten
 
@@ -499,22 +512,22 @@ def get_references(img):
 
 def linesComponents(binary_image, originalImageWidth):
     dilated = binary_dilation(binary_image, np.ones((1, originalImageWidth // 16)))
-    # show_images([dilated], ["Dilated Lines"])
+    show_images([dilated], ["Dilated Lines"])
 
     lines_components, lines_sorted_images, lines_boxes, lines_areas_over_bbox = CCA(dilated, True)
-    # displayComponents(binary_image, lines_components)
+    displayComponents(binary_image, lines_components)
 
     arrayOfLines = segmentBoxesInImage(lines_boxes, binary_image, True)
-    # for imageLine in arrayOfLines:
-    #     show_images([imageLine])
+    for imageLine in arrayOfLines:
+        show_images([imageLine])
     return lines_components, arrayOfLines
 
 
 def wordsComponents(binary_image):
-    dilated = binary_dilation(binary_image, np.ones((10, 10)))
+    dilated = binary_dilation(binary_image, np.ones((10, 15)))
     # show_images([dilated])
     words_components, words_sorted_images, words_boxes, words_areas_over_bbox = CCA(dilated, False)
-    # displayComponents(binary_image, words_components)
+    displayComponents(binary_image, words_components)
     arrayOfWords = segmentBoxesInImage(words_boxes, binary_image, False)
 
     return words_components, arrayOfWords, words_boxes
