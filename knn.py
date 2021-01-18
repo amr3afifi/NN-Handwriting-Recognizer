@@ -1,11 +1,14 @@
+from sklearn.neighbors import KNeighborsClassifier
+
 from functions import *
 from sklearn import svm
+from sklearn import metrics
 
 def extract_features(image):
     img_scanned, img_handwritten = segmentImages(image)
     if img_scanned is None or img_handwritten is None:
         return None
-    show_images([img_scanned, img_handwritten], ["Scanned", "Hand Written"])
+    # show_images([img_scanned, img_handwritten], ["Scanned", "Hand Written"])
     # Binarizing returned images
     scanned_gray = rgb2gray(img_scanned)
     scanned_binary = scanned_gray > threshold_otsu(scanned_gray)
@@ -336,6 +339,18 @@ true_values = [0, 0, 5]
 if training_features.any():
     knns = predict(test_images, shapes, true_values, training_features, y_train)
     accuracy_knn = calc_accuracy(knns, true_values, ntest)
+
+    clf = KNeighborsClassifier(n_neighbors=1)
+    clf.fit(training_features, y_train)
+    y_pred = clf.predict(training_features)  # Predict values for our test data
+    acc = metrics.accuracy_score(y_train, y_pred)  # Test them against our correct values
+    print("KNN ACCURACY:", acc)
+
+    clf = svm.SVC(kernel="linear", C=2)
+    clf.fit(training_features, y_train)
+    y_pred = clf.predict(training_features)  # Predict values for our test data
+    acc = metrics.accuracy_score(y_train, y_pred)  # Test them against our correct values
+    print("SVM ACCURACY:", acc)
 else:
     print("akhhhhh")
 #

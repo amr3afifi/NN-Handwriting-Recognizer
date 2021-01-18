@@ -3,42 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="8519a610-7153-4eca-adfa-a3443fcb6bb9" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1.png" beforeDir="false" afterPath="$PROJECT_DIR$/1.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/2.png" beforeDir="false" afterPath="$PROJECT_DIR$/2.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/functions.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/knn.py" beforeDir="false" afterPath="$PROJECT_DIR$/knn.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/larger_test_set/1/a01-000u.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/larger_test_set/10/a01-020x.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/larger_test_set/6/a01-011x.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/larger_test_set/7/a01-014.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/larger_test_set/8/a01-014x.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/larger_test_set/9/a01-020.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/larger_test_set/test/a01-026x.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/larger_test_set/test/a01-030.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/larger_test_set/test/a01-030x.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/larger_test_set/test/a01-038.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/larger_test_set/test/a01-049u.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/testdataset/data/08/1/1.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/testdataset/data/08/1/2.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/testdataset/data/08/2/1.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/testdataset/data/08/2/2.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/testdataset/data/08/3/1.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/testdataset/data/08/3/2.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/testdataset/data/08/test.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/testdataset/data/09/1/1.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/testdataset/data/09/1/2.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/testdataset/data/09/2/1.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/testdataset/data/09/2/2.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/testdataset/data/09/3/1.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/testdataset/data/09/3/2.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/testdataset/data/09/test.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/testdataset/data/10/1/1.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/testdataset/data/10/1/2.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/testdataset/data/10/2/1.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/testdataset/data/10/2/2.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/testdataset/data/10/3/1.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/testdataset/data/10/3/2.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/testdataset/data/10/test.png" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -241,22 +206,22 @@
       <screen x="0" y="0" width="1536" height="824" />
     </state>
     <state x="549" y="167" key="FileChooserDialogImpl/0.0.1536.824@0.0.1536.824" timestamp="1610755221542" />
-    <state width="1515" height="107" key="GridCell.Tab.0.bottom" timestamp="1610945011846">
+    <state width="1515" height="190" key="GridCell.Tab.0.bottom" timestamp="1610946227599">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state width="1515" height="107" key="GridCell.Tab.0.bottom/0.0.1536.824@0.0.1536.824" timestamp="1610945011846" />
-    <state width="1515" height="107" key="GridCell.Tab.0.center" timestamp="1610945011846">
+    <state width="1515" height="190" key="GridCell.Tab.0.bottom/0.0.1536.824@0.0.1536.824" timestamp="1610946227599" />
+    <state width="1515" height="190" key="GridCell.Tab.0.center" timestamp="1610946227599">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state width="1515" height="107" key="GridCell.Tab.0.center/0.0.1536.824@0.0.1536.824" timestamp="1610945011846" />
-    <state width="1515" height="107" key="GridCell.Tab.0.left" timestamp="1610945011846">
+    <state width="1515" height="190" key="GridCell.Tab.0.center/0.0.1536.824@0.0.1536.824" timestamp="1610946227599" />
+    <state width="1515" height="190" key="GridCell.Tab.0.left" timestamp="1610946227599">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state width="1515" height="107" key="GridCell.Tab.0.left/0.0.1536.824@0.0.1536.824" timestamp="1610945011846" />
-    <state width="1515" height="107" key="GridCell.Tab.0.right" timestamp="1610945011846">
+    <state width="1515" height="190" key="GridCell.Tab.0.left/0.0.1536.824@0.0.1536.824" timestamp="1610946227599" />
+    <state width="1515" height="190" key="GridCell.Tab.0.right" timestamp="1610946227599">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state width="1515" height="107" key="GridCell.Tab.0.right/0.0.1536.824@0.0.1536.824" timestamp="1610945011846" />
+    <state width="1515" height="190" key="GridCell.Tab.0.right/0.0.1536.824@0.0.1536.824" timestamp="1610946227599" />
     <state x="431" y="145" width="672" height="678" key="search.everywhere.popup" timestamp="1610941875310">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
