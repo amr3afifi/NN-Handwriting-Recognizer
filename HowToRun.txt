@@ -1,0 +1,5 @@
+1. Open main.py
+
+2. Write directory of test data set in variable -> directory
+
+3. Run

@@ -1,107 +1,101 @@
-from functions import *
+from helpers import *
+from feature_extraction import *
+from preprocessing import *
+warnings.filterwarnings("ignore")
 
-# Read
-img = cv2.imread('a01-003.png', cv2.IMREAD_COLOR)
+directory='./TestSet'
+f_time = open("time.txt", "w")
+f_results = open("results.txt", "w")
 
-# Copying the rgb image
-rgbimage = img.copy()
+y_trues=read_Y_TRUE(directory)
+counterTest=0
+# knn_true=0
+svm_true=0
 
-# Segmenting image
-img_scanned, img_handwritten = segmentImages(rgbimage)
-show_images([img_scanned, img_handwritten], ["Scanned", "Hand Written"])
+for folder in os.listdir(directory):
+    path = directory + '/' + folder+'/'
+    if not os.path.isdir(path):
+        continue
+    # print('##################### - Test '+folder+' - #####################')
+    y_true = [y_trues[counterTest]]
+    counterTest+=1
+    no_of_classes = 3
+    
+    images, y_trainer = training_data(no_of_classes, path)
+    images = np.array(images)
 
-# Binarizing returned images
-scanned_gray = rgb2gray(img_scanned)
-scanned_binary = scanned_gray > threshold_otsu(scanned_gray)
+    c = 0
+    handwritten_images_binary = []
+    scanned_images_binary = []
+    handwritten_images_grayscale = []
+    scanned_images_grayscale = []
+    x_train = np.zeros((len(images), 256))
+    
+    start = time.time()
 
-handwritten_gray = rgb2gray(img_handwritten)
-handwritten_binary = handwritten_gray > threshold_otsu(handwritten_gray)
+    for i in range(len(images)):
+        scanned_binary = images[i] < threshold_otsu(images[i])
+        scanned_binary, handwritten_binary, scanned_grayscale, handwritten_grayscale = segmentImages(images[i],scanned_binary)
+       
+        c += 1
 
-# Retrieving Lines Images and Components
-scanned_components, scanned_Lines = linesComponents(scanned_binary, img.shape[1])
-handwritten_components, handwritten_Lines = linesComponents(handwritten_binary, img.shape[1])
-show_images(scanned_Lines)
+        components_handrwitten, lines_handwritten_images, boxes_handrwitten = linesComponents(handwritten_binary, images[i].shape[1])
+        if components_handrwitten is None:
+            continue
 
-sum_scanned = 0
-sum_handwritten = 0
-avgs_length_scanned = []
-avgs_height_scanned = []
-avgs_length_handwritten = []
-avgs_height_handwritten = []
-avgs_blobs_handwritten = []
+        x_train[i, :] = extract_features(boxes_handrwitten, lines_handwritten_images, len(boxes_handrwitten),handwritten_grayscale)
+        # features.append(hist)
+        # print('Image Num='+str(i))
 
-# Retrieving Words Images and Components from each line
+###################################################### Training
 
-print("number of Scanned lines", len(scanned_Lines))
-for i in range(len(scanned_Lines)):
-    scanned_words_components, scanned_arrayOfWords, scanned_words_boxes = wordsComponents(scanned_Lines[i])
-    # words_images = segmentBoxesInImage(scanned_words_boxes, scanned_Lines[i], False)
+    # SVM PREDICTION ON TRAINING
+    y_train = np.array(y_trainer)
+    y_true = np.array(y_true)
+    clf_svm= svm.SVC(kernel="linear", C=2, max_iter=1000000)
+    clf_svm.fit(x_train, y_train)
+    
+    # KNN PREDICTION ON TRAINING
+    # clf_knn = KNeighborsClassifier(n_neighbors=3)
+    # clf_knn.fit(x_train, y_train)
+    
+###################################################### Load Test Image
+    test_image = cv2.imread(path + 'test.png', 0)
+    test_images = [test_image]
 
-    # words_blobs_areas = [blobArea(words_images[j] ^ segmentation.flood_fill(words_images[j], (0, 0), 255)) for j in \
-    #                     range(words_images.shape[0])]
-    npsum = np.sum(scanned_words_boxes, axis=0)
-    length_scanned_words = len(scanned_arrayOfWords)
-    avgs_length_scanned.append((npsum[3] - npsum[1]) / length_scanned_words)
-    avgs_height_scanned.append((npsum[2] - npsum[0]) / length_scanned_words)
-    # avgs_blobs_scanned.append(np.average(words_blobs_areas))
-    sum_scanned += length_scanned_words
+    scanned_binary = test_image < threshold_otsu(test_image)
+    scanned_binary, handwritten_binary, scanned_grayscale, handwritten_grayscale = segmentImages(test_image,scanned_binary)
 
-sum_scanned /= len(scanned_Lines)
-avg_length_scanned = np.average(avgs_length_scanned)
-avg_height_scanned = np.average(avgs_height_scanned)
-average_word_gaps_line = []
-print("number of handwritten lines", len(handwritten_Lines))
-max_col = 0
-min_row = 0
-line_gaps = []
-for i in range(len(handwritten_Lines)):
-    handwritten_words_components, handwritten_arrayOfWords, handwritten_words_boxes = wordsComponents(
-        handwritten_Lines[i])
-    # f6
-    if i != 0:
-        line_gaps.append(handwritten_components[i].bbox[2] - min_row)
-    min_row = handwritten_components[i].bbox[0]
-    # f5
-    words_gaps = []
-    words_blobs_areas = []
-    if handwritten_arrayOfWords.shape[0] > 1:
-        for j in range(handwritten_arrayOfWords.shape[0]):
-            # f5
-            if j != 0:
-                words_gaps.append(handwritten_words_boxes[j][1] - max_col)
-            max_col = handwritten_words_boxes[j][3]
-            # f4
-            words_blobs_areas.append(blobArea(
-                handwritten_arrayOfWords[j] ^ segmentation.flood_fill(handwritten_arrayOfWords[j], (0, 0), 255)))
-        average_word_gaps_line.append(np.average(words_gaps))
-        avgs_blobs_handwritten.append(np.average(words_blobs_areas))
-    # f4 calculations
-    # words_blobs_areas = [
-    #    blobArea(handwritten_arrayOfWords[j] ^ segmentation.flood_fill(handwritten_arrayOfWords[j], (0, 0), 255)) for j
-    #    in \
-    #    range(handwritten_arrayOfWords.shape[0])]
-    # f1
-    length_handwritten_words = len(handwritten_arrayOfWords)
-    sum_handwritten += length_handwritten_words
-    # f2
-    npsum = np.sum(handwritten_words_boxes, axis=0)
-    avgs_length_handwritten.append((npsum[3] - npsum[1]) / length_handwritten_words)
-    # f3
-    avgs_height_handwritten.append((npsum[2] - npsum[0]) / length_handwritten_words)
-# print("words gaps:", average_word_gaps_line)
-sum_handwritten /= len(handwritten_Lines)
-avg_length_handwritten = np.average(avgs_length_handwritten)
-avg_height_handwritten = np.average(avgs_height_handwritten)
-avgs_blobs_handwritten = np.array(avgs_blobs_handwritten)
+    c = 0
+    x_test = np.zeros((1, 256))
+    components_handrwitten, lines_handwritten_images, boxes_handrwitten = linesComponents(
+        handwritten_binary, test_image.shape[1])
+    if components_handrwitten is None:
+        print("No components found in handwritten")
 
-f1 = sum_scanned / sum_handwritten
-f2 = avg_length_scanned / avg_length_handwritten
-f3 = avg_height_scanned / avg_height_handwritten
-f4 = np.average(avgs_blobs_handwritten)
-f5 = np.average(average_word_gaps_line)
-f6 = np.average(line_gaps)
-print("f5", f5)
-print("f4", f4)
-print("f6", f6)
+    x_test[0, :] = extract_features(boxes_handrwitten, lines_handwritten_images, len(boxes_handrwitten), handwritten_grayscale)
+    
+####################################################### Testing
+    y_pred_SVM = clf_svm.predict(x_test)
+    acc_SVM = metrics.accuracy_score(y_true, y_pred_SVM)
+    
+    # y_pred_knn = clf_knn.predict(x_test)
+    # acc_knn = metrics.accuracy_score(y_true, y_pred_knn)
+    
+    end = time.time()
+    
+    # print("Y_true:", y_true)
+    # print("Y_pred_SVM:", y_pred_SVM)
+    # print("Y_pred_KNN:", y_pred_knn)
+    
+    svm_true+=acc_SVM
+    # knn_true+=acc_knn
+    
+    f_time.write(str(round(end - start, 2))+'\n')
+    f_results.write(str(y_pred_SVM[0])+'\n')
+    # print("Time (training+test) taken:", end - start, " seconds")
 
-print(f3)
+print("SVM Total Accuracy:", svm_true/counterTest)
+f_time.close()
+f_results.close()
+# print("KNN Total Accuracy:", knn_true/counterTest)
